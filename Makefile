@@ -4,7 +4,11 @@ STD		=	-std=c++98
 NAME	=	ircserv
 FLAGS	=	-Wall -Werror -Wextra
 
-SOURCES	= ./Sources/main.cpp
+SOURCES	=	./Sources/main.cpp \
+			./Sources/Error.cpp \
+			./Sources/Server.cpp \
+			./Sources/Utils.cpp
+
 OBJECTS	= $(SOURCES:.cpp=.o)
 
 $(NAME): $(OBJECTS)
