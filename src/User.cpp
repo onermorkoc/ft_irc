@@ -12,7 +12,7 @@
 
 #include "../inc/User.hpp"
 
-User::User(): correctPassword(false), nicknameSet(false), usernameSet(false) {}
+User::User(void): correctPassword(false), nicknameSet(false), usernameSet(false) {}
 
 void User::setSocket(int socket){
     this->socket = socket;
@@ -52,6 +52,14 @@ std::string User::getUsername(void) const {
     return (username);
 }
 
+void User::setHostname(std::string hostname){
+    this->hostname = hostname;
+}
+
+std::string User::getHostname(void) const {
+    return (hostname);
+}
+
 bool User::operator<(const User &other) const {
     return (socket < other.socket);
 }
@@ -65,4 +73,19 @@ bool User::findChannel(std::string str){
         if ((*it).getName() == str)
             return 1;
     return 0;
+}
+
+std::string User::getSource(void) const {
+    
+    std::string source = ":";
+    source += getNickname();
+    source += "!";
+    source += getUsername();
+    source += "@";
+    source += getHostname();
+    return (source);
+}
+
+bool User::hasNickname(void) const {
+    return (nicknameSet);
 }

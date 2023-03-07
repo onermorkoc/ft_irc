@@ -32,6 +32,7 @@ class Channel{
         
         void                        addUserSocket(int socket);
         bool                        operator<(const Channel &other) const;
+        User                       *getOperator(void) const;
         Channel                     &operator=(const Channel &other);
         std::string                 getName(void) const;
         std::set<int>::iterator     getUsersBegin(void);

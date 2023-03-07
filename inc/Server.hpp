@@ -31,7 +31,7 @@ class Server {
         void newMessage(int index);
         void addToPfds(int newfd);
         void delFromPfds(int index);
-
+        
     public:
 
         Server(std::string port, std::string pass);

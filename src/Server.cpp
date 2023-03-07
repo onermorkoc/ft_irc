@@ -85,13 +85,19 @@ void Server::newConnection(void){
     struct sockaddr_storage clientaddr;
     socklen_t addrlen = sizeof(clientaddr);
 
+    char hostname[NI_MAXHOST];
+    char service[NI_MAXSERV];
+    memset(hostname, 0, NI_MAXHOST);
+    memset(service, 0, NI_MAXSERV);
+
     int newfd = accept(server_fd, (struct sockaddr *)(&clientaddr), &addrlen);
     
     if (newfd == -1)
         error(6);
     else{
         addToPfds(newfd);
-        this->command.addUser(newfd);
+        getnameinfo((sockaddr *)(&clientaddr), addrlen, hostname, NI_MAXHOST, service, NI_MAXSERV, 0);
+        this->command.addUser(newfd, hostname);
         std::cout << "=> New connection from " << inet_ntop(clientaddr.ss_family, &((struct sockaddr_in *)(&clientaddr))->sin_addr, \
             clientIP, INET_ADDRSTRLEN) << " on socket " << newfd << std::endl;
     }
@@ -123,7 +129,7 @@ void Server::newMessage(int index){
     std::string buff;
     int data_byte = receiveMsg(pfds[index].fd, buff);
     int sender_fd = pfds[index].fd;
-    
+
     if (data_byte <= 0){
 
         if (data_byte == 0)
@@ -133,7 +139,16 @@ void Server::newMessage(int index){
         delFromPfds(index);
 
     }else{
-        std::vector<std::string> split_msg = splitMsg(std::string(buff));
-        this->command.commandDirector(split_msg, sender_fd);
+
+        if (buff[buff.length() - 2] != '\r')
+            buff.insert(buff.length() - 1, "\r");
+
+        std::vector<std::string> split_commands = splitCommands(buff);
+
+        for (int i = 0; i < split_commands.size(); i++){
+            std::cout << "msg taken: " << split_commands[i]; // GELEN YAZILAR SERVERDE
+            std::vector<std::string> split_msg = splitMsg(split_commands[i]);
+            this->command.commandDirector(split_msg, sender_fd);
+        }
     }
 }

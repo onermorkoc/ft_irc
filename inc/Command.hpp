@@ -12,20 +12,24 @@ class Command{
         std::map<int, User>             userMap;
         std::map<std::string, Channel>  channelMap;
 
-        void join(std::string name, User &user);
-        void nick(std::string nickname, User &user);
-        void pass(std::string pass, User &user);
-        void privmsg(std::string str, std::string msg, User &user);
+        void pass(std::vector<std::string> &command, User &user);
+        void nick(std::vector<std::string> &command, User &user);
         void user(std::vector<std::string> &split, User &user);
+        void join(std::string name, User &user);
+        void privmsg(std::vector<std::string> &commands, User &user, bool notice);
+        void ping(std::string str, User &user);
         void sendMessage(User &user, std::string msg);
+        void sendMessage(User &user, std::string channel_name, std::string msg);
+        void sendNames(std::string name, User &user);
+        void numericReply(int error, User &user, std::string *context = nullptr);
 
     public:
     
         Command(std :: string password);
 
-        void commandDirector(std::vector<std::string> &msg, int sender_fd);
+        void commandDirector(std::vector<std::string> &cmd, int sender_fd);
         void setServerFd(int server_fd);
-        void addUser(int fd);
+        void addUser(int fd, char *hostname);
 };
 
 # endif

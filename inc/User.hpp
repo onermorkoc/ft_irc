@@ -29,6 +29,7 @@ class User{
         std::string         nickname;
         std::string         username;
         std::string         realname;
+        std::string         hostname;
         std::set<Channel>   channelSet;
 
     public:
@@ -40,13 +41,17 @@ class User{
         bool        getPasswd(void) const;
         bool        getLogin(void) const;
         bool        findChannel(std::string str);
+        bool        hasNickname(void) const;
         void        setSocket(int socket);
         void        setPasswd(bool type);
         void        setNickname(std::string nickname);
         void        setUsername(std::string username);
         void        addChannel(const Channel &channel);
+        void        setHostname(std::string hostname);
         std::string getNickname(void) const;
         std::string getUsername(void) const;
+        std::string getHostname(void) const;
+        std::string getSource(void) const;
+    
 };
-
 # endif

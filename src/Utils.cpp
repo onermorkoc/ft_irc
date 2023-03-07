@@ -1,4 +1,5 @@
 # include "../inc/ft_irc.hpp"
+# include "../inc/User.hpp"
 
 int isnumber(char *s){
     while(*s)
@@ -28,10 +29,10 @@ int receiveMsg(int socket, std::string &buff){
     return (rd);
 }
 
-std::vector<std::string> splitMsg(std::string content){
+std::vector<std::string> splitMsg(std::string content) {
 
-    char *words = new char [content.length()+1];
-	std::strcpy(words, content.data());
+    char *words = new char[content.length() + 1];
+	std::strcpy(words, content.c_str());
 	char *line = strtok(words, " ");
 	std::vector<std::string> clientMsg;
 	
@@ -40,7 +41,24 @@ std::vector<std::string> splitMsg(std::string content){
 		line = strtok(NULL, "\r \n");
 	}
 	delete[] words;
+
+    if (clientMsg.size() == 1 && clientMsg[0].length() > 1 && clientMsg[0][clientMsg[0].length() - 1] == '\n'\
+         && clientMsg[0][clientMsg[0].length() - 2] == '\r')
+            clientMsg[0].erase(clientMsg[0].length() - 2, 2); // Sondaki \r\n siliyorum
 	return (clientMsg);
+}
+
+std::vector<std::string> splitCommands(std::string content){
+
+    std::vector<std::string> split;
+    int end = content.find("\r\n");
+    
+    while (end != -1){
+        split.push_back(content.substr(0, end + 2));
+        content.erase(0, end + 2);
+        end = content.find("\r\n");
+    }
+    return (split);
 }
 
 int error(int key_code){
@@ -79,4 +97,30 @@ int error(int key_code){
     }
 
     return (1);
+}
+
+std::string toString(int n){
+    
+    if (n == 1)
+        return ("001");
+    else
+        return (std::to_string(n));
+}
+
+bool isalnumunderscore(char c){
+	return (!(isalnum(c) || c == '_'));
+}
+
+int checkNickname(std::string &nickname, std::map<int, User> &userMap){
+
+    if (nickname.empty())
+        return (1);
+    else if (nickname.size() > 20 || !isalpha(nickname[0]) || std::find_if(nickname.begin(), nickname.end(), isalnumunderscore) != nickname.end())
+        return (2);
+    else{
+        for (std::map<int, User>::iterator it = userMap.begin(); it != userMap.end(); it++)
+            if (it->second.hasNickname() && it->second.getNickname() == nickname)
+                return (3);
+    }
+    return (0);
 }

@@ -44,3 +44,7 @@ std::string Channel::getName(void) const{
 void Channel::addUserSocket(int socket){
     userSockets.insert(socket);
 }
+
+User *Channel::getOperator(void) const {
+    return (m_operator);
+}
