@@ -3,37 +3,43 @@
 
 # include "./User.hpp"
 
+typedef map<int, User>::iterator            user_iterator;
+typedef map<string, Channel>::iterator      channel_iterator;
+
 class Command{
 
     private:
 
-        int                             server_fd;
-        std :: string                   password;
-        std::map<int, User>             userMap;
-        std::map<std::string, Channel>  channelMap;
+        int                     server_fd;
+        string                  password;
+        map<int, User>          userMap;
+        map<string, Channel>    channelMap;
 
-        void pass(std::vector<std::string> &command, User &user);
-        void nick(std::vector<std::string> &command, User &user);
-        void user(std::vector<std::string> &split, User &user);
-        void join(std::string name, User &user);
-        void privmsg(std::vector<std::string> &commands, User &user, bool notice);
-        void ping(std::string str, User &user);
-        void sendMessage(User &user, std::string msg);
-        void sendMessage(User &user, std::string channel_name, std::string msg);
-        void sendNames(std::string name, User &user);
-        void numericReply(int error, User &user, std::string *context = nullptr);
+        void pass(vector<string> &cmd, User &user);
+        void nick(vector<string> &cmd, User &user);
+        void user(vector<string> &split, User &user);
+        void join(string name, User &user);
+        void privmsg(vector<string> &cmds, User &user, bool notice);
+        void ping(string str, User &user);
+        void sendMessage(User &user, string msg);
+        void sendMessage(User &user, string channel_name, string msg);
+        void sendNames(string name, User &user);
+        void numericReply(int error, User &user, string *context = nullptr);
 
         // Yeni
-        void kick(std::string channel_name, std::string nickname, User &user);
-        User &nickname_to_user(std :: string nickname);
+        void kick(vector<string> &cmd, User &user);
+        user_iterator nickname_to_iterator(string nickname);
 
     public:
     
-        Command(std :: string password);
+        Command(string password);
 
-        void commandDirector(std::vector<std::string> &cmd, int sender_fd);
+        void commandDirector(vector<string> &cmd, int sender_fd);
         void setServerFd(int server_fd);
-        void addUser(int fd, char *hostname);
+        void addUser(int newfd, char *hostname);
+
+        // Yeni
+        void disconnectUser(int user_fd);
 };
 
 # endif

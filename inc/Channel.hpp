@@ -21,22 +21,22 @@ class Channel{
 
     private:
 
-        User            *m_operator;
-        std::string     name;
-        std::set<int>   userSockets;
+        User        *owner;
+        string      name;
+        set<int>    userSockets;
 
     public:
 
         Channel(void);
-        Channel(std::string name, User &user);
+        Channel(string name, User &user);
+        bool        operator<(const Channel &other) const;
+        Channel     &operator=(const Channel &other);
         
-        void                        addUserSocket(int socket);
-        bool                        operator<(const Channel &other) const;
-        User                       *getOperator(void) const;
-        Channel                     &operator=(const Channel &other);
-        std::string                 getName(void) const;
-        std::set<int>::iterator     getUsersBegin(void);
-        std::set<int>::iterator     getUsersEnd(void);
+        void                addUserSocket(int socket);
+        User                *getOwner(void) const;
+        string              getName(void) const;
+        set<int>::iterator  getUsersBegin(void);
+        set<int>::iterator  getUsersEnd(void);
 
         //Yeni
         bool checkUser(int socket);

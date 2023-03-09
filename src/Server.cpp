@@ -13,11 +13,12 @@
 #include "../inc/Server.hpp"
 
 // Constructor
-Server::Server(std::string port, std::string pass): fd_count(0), port(port), command(pass) {}
+Server::Server(string port, string pass): fd_count(0), pfds(nullptr), port(port), command(pass) {}
 
 // Yeni
 Server::~Server(void){
-    free(this->pfds);
+    if (this->pfds != nullptr)
+        free(this->pfds);
 }
 
 // Serveri oluştur
@@ -62,9 +63,17 @@ int Server::create(void){
     return (0);
 }
 
+void handler(int num){
+    if (num == SIGINT){
+        // Eksik yapılacak
+    }
+}
+
 // Serveri çalıştır (loop).
 int Server::run(void){
     
+    signal(SIGINT, handler);
+
     while (true){
         
         if (poll(pfds, fd_count, -1) == -1)
@@ -101,8 +110,8 @@ void Server::newConnection(void){
         addToPfds(newfd);
         getnameinfo((sockaddr *)(&clientaddr), addrlen, hostname, NI_MAXHOST, service, NI_MAXSERV, 0);
         this->command.addUser(newfd, hostname);
-        std::cout << "=> New connection from " << inet_ntop(clientaddr.ss_family, &((struct sockaddr_in *)(&clientaddr))->sin_addr, \
-            clientIP, INET_ADDRSTRLEN) << " on socket " << newfd << std::endl;
+        cout << "=> New connection from " << inet_ntop(clientaddr.ss_family, &((struct sockaddr_in *)(&clientaddr))->sin_addr, \
+            clientIP, INET_ADDRSTRLEN) << " on socket " << newfd << endl;
     }
 }
 
@@ -129,14 +138,14 @@ void Server::delFromPfds(int index){
 // Veriyi al işle veya bağlantıyı koparanları tespit et
 void Server::newMessage(int index){
 
-    std::string buff;
+    string buff;
     int sender_fd = pfds[index].fd;
     int data_byte = receiveMsg(sender_fd, buff);
     
     if (data_byte <= 0){
 
         if (data_byte == 0)
-            std::cout << "=> Socket " << sender_fd << " hung up." << std::endl;
+            command.disconnectUser(sender_fd);
         else
             error(9);
         delFromPfds(index);
@@ -146,11 +155,11 @@ void Server::newMessage(int index){
         if (buff[buff.length() - 2] != '\r')
             buff.insert(buff.length() - 1, "\r");
 
-        std::vector<std::string> split_commands = splitCommands(buff);
+        vector<string> split_commands = splitCommands(buff);
 
         for (int i = 0; i < split_commands.size(); i++){
-            std::cout << "message taken: " << split_commands[i];
-            std::vector<std::string> split_msg = splitMsg(split_commands[i]);
+            cout << "message taken: " << split_commands[i];
+            vector<string> split_msg = splitMsg(split_commands[i]);
             this->command.commandDirector(split_msg, sender_fd);
         }
     }

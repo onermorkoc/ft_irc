@@ -20,12 +20,12 @@ class Server {
 
     private:
 
-        int                 server_fd;
-        int                 fd_count;
-        int                 fd_max;
-        Command             command;
-        std :: string       port;
-        struct pollfd       *pfds;
+        int             server_fd;
+        int             fd_count;
+        int             fd_max;
+        Command         command;
+        string          port;
+        struct pollfd   *pfds;
 
         void newConnection(void);
         void newMessage(int index);
@@ -34,7 +34,7 @@ class Server {
         
     public:
 
-        Server(std::string port, std::string pass);
+        Server(string port, string password);
 
         // Yeni
         ~Server(void);

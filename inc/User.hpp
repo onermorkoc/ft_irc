@@ -22,39 +22,38 @@ class User{
 
     private:
     
-        int                 socket;
-        bool                correctPassword;
-        bool                nicknameSet;
-        bool                usernameSet;
-        std::string         nickname;
-        std::string         username;
-        std::string         realname;
-        std::string         hostname;
-        std::set<Channel>   channelSet;
+        int             socket;
+        bool            correctPassword;
+        bool            nicknameSet;
+        bool            usernameSet;
+        string          nickname;
+        string          username;
+        string          realname;
+        string          hostname;
+        set<Channel>    channelSet;
 
     public:
 
         User(void);
-        bool operator<(const User &other) const;
+        bool    operator<(const User &other) const;
 
         int         getSocket(void) const;
-        bool        getPasswd(void) const;
+        bool        getCorrectPassword(void) const;
         bool        getLogin(void) const;
-        bool        findChannel(std::string str);
-        bool        hasNickname(void) const;
+        bool        checkChannel(string channel_name);
+        bool        getNicknameSet(void) const;
         void        setSocket(int socket);
-        void        setPasswd(bool type);
-        void        setNickname(std::string nickname);
-        void        setUsername(std::string username);
+        void        setCorrectPassword(bool status);
+        void        setNickname(string nickname);
+        void        setUsername(string username);
         void        addChannel(const Channel &channel);
-        void        setHostname(std::string hostname);
-        std::string getNickname(void) const;
-        std::string getUsername(void) const;
-        std::string getHostname(void) const;
-        std::string getSource(void) const;
+        void        setHostname(string hostname);
+        string      getNickname(void) const;
+        string      getUsername(void) const;
+        string      getHostname(void) const;
+        string      getSource(void) const;
         
         // Yeni
         void delChannel(const Channel &channel);
-    
 };
 # endif

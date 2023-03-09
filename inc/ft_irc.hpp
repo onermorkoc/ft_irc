@@ -25,6 +25,15 @@
 # include <set>
 # include <cstring>
 # include <algorithm>
+# include <signal.h>
+
+using std::string;
+using std::map;
+using std::vector;
+using std::set;
+using std::cout;
+using std::endl;
+
 # include "./User.hpp"
 
 class User;
@@ -32,10 +41,10 @@ class User;
 // Utils
 int error(int key_code);
 int isnumber(char *s);
-int receiveMsg(int socket, std::string &buff);
-int checkNickname(std::string &nickname, std::map<int, User> &userMap);
-std::vector<std::string> splitMsg(std::string content);
-std::vector<std::string> splitCommands(std::string content);
-std::string toString(int n);
+int receiveMsg(int socket, string &buff);
+int checkNickname(string &nickname, map<int, User> &userMap);
+vector<string> splitMsg(string content);
+vector<string> splitCommands(string content);
+string toString(int n);
 
 # endif

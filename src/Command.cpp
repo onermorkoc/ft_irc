@@ -1,15 +1,15 @@
 # include "../inc/Command.hpp"
 
-Command::Command(std :: string password): password(password) {}
+Command::Command(string password): password(password) {}
 
-void   Command::commandDirector(std::vector<std::string> &cmd, int sender_fd) {
+void Command::commandDirector(vector<string> &cmd, int sender_fd) {
     
     User &user = userMap[sender_fd];
 
     if (cmd[0] == "PASS")
         pass(cmd, user);
     
-    if (user.getPasswd()){
+    if (user.getCorrectPassword()){
         if (cmd[0] == "NICK")
             nick(cmd, user);
         else if (cmd[0] == "USER" && cmd.size() >= 5)
@@ -25,62 +25,68 @@ void   Command::commandDirector(std::vector<std::string> &cmd, int sender_fd) {
             privmsg(cmd, user, true);
         else if (cmd[0] == "PING" && cmd.size() == 2)
             ping(cmd[1], user);
-        else if (cmd[0] == "KICK" && cmd.size() == 3) // /KICK #abc bob123
-            kick(cmd[1], cmd[2], user);
+        else if (cmd[0] == "KICK" /*&& cmd.size() == 3*/) // /KICK #abc bob123
+            kick(cmd, user);
     }
 }
 
-// nicknameden mapte ki useri bulur yoksa end döndürür.
-User &Command::nickname_to_user(std :: string nickname){
+user_iterator Command::nickname_to_iterator(string nickname){
 
-    std :: map<int, User>::iterator first = this->userMap.begin();
+    user_iterator first = this->userMap.begin();
 
     while (first != this->userMap.end()){
         if (first->second.getNickname() == nickname)
-            return (first->second);
+            return (first);
         first++;
     }
-    return (first->second); // Bu önemsiz end()->second ile eşdeğer
+    return (first); // Bu end() ile eşdeğer
 }
+    
+void Command::kick(vector<string> &cmd, User &user){
 
-void Command::kick(std::string channel_name, std::string nickname, User &user){
+    channel_iterator c_ite = channelMap.find(cmd[1]);
 
-    // kanal olmuyabilir  ==> 441
-    // kanal var ama bu işlemi yapan kanal operatorü olmayabilir  => 482
-    // kanal operatoru yapıyordur ama atmaya çalıştığı kişi kanalda olmayabilir
-    // kanaldan atılır.
-
-    //Not: Command daki userMap => map<user_fd, User>
-    //     Commandaki channelMap => map<channel_name, Channel>
-
-    std::map <std::string, Channel>::iterator channel_iterator = channelMap.find(channel_name);
-
-    if (channel_iterator == channelMap.end()){
-        // Kanal Yok
+    if (c_ite == channelMap.end()){ // Kanal Yok
+        // numericReply(); => 403
+        return;
     }else{
 
-        Channel channel = channel_iterator->second;
+        Channel channel = c_ite->second;
 
-        if (channel.getOperator() != &user){
-            // İşlemi yapan kanal operatörü değil.
+        if (channel.getOwner() != &user){ // İşlemi yapan kanal operatörü değil.
+            // numericReply(); => 482
+            return;
         }else{
 
-            User user = this->nickname_to_user(nickname);
+            user_iterator kicked_ite = nickname_to_iterator(cmd[2]);
 
-            if (!channel.checkUser(user.getSocket())){
-                // Atmaya çalıştıgı kişi bu kanalda yok
+            if (kicked_ite == userMap.end()){ // Atmaya çalıştığı kişi server de yok
+                // numericReply();
+                return;
             }else{
 
-                // kişiyi çıkart
-                channel.delUserSocket(user.getSocket());
-                user.delChannel(channel);
+                User kicked = kicked_ite->second;
 
-                if (channel.isEmpty()) // Kanalda user kalmadıysa
-                    this->channelMap.erase(channel_name); // Boş Kanalı sil
+                if (!channel.checkUser(kicked.getSocket())){ // Atmaya çalıştıgı kişi bu kanalda yok
+                    // numericReply(); => 441
+                    return;
+                }else{
+
+                    // kişiyi çıkart
+                    channel.delUserSocket(kicked.getSocket());
+                    kicked.delChannel(channel);
+
+                    if (channel.isEmpty()) // Kanalda user kalmadıysa
+                        this->channelMap.erase(cmd[1]); // Boş Kanalı sil
+                }
             }
         }
     }
+}
 
+void Command::disconnectUser(int user_fd){
+    // Eksik yapılacak
+    cout << "=> Socket " << user_fd << " hung up." << endl;
 }
 
 void Command::setServerFd(int server_fd){
@@ -93,81 +99,81 @@ void Command::addUser(int newfd, char *hostname){
     userMap[newfd].setHostname(hostname);
 }
 
-void Command::pass(std::vector<std::string> &command, User &user){
+void Command::pass(vector<string> &cmd, User &user){
 
-    if (command.size() < 2){
-        numericReply(461, user, &(command[0]));
+    if (cmd.size() < 2){
+        numericReply(461, user, &(cmd[0]));
         return;
-    }else if (user.getPasswd()){
+    }else if (user.getCorrectPassword()){
         numericReply(462, user);
         return;
     }
 
-    if (command[1] == password)
-        user.setPasswd(true);
+    if (cmd[1] == password)
+        user.setCorrectPassword(true);
     else
         numericReply(464, user);
 }
 
-void Command::nick(std::vector<std::string> &command, User &user){
+void Command::nick(vector<string> &cmd, User &user){
 
     int error_value;
 
-    if (command.size() < 2)
+    if (cmd.size() < 2)
         error_value = 1;
     else
-        error_value = checkNickname(command[1], userMap);
+        error_value = checkNickname(cmd[1], userMap);
 
     if (error_value == 1)
         numericReply(431, user);
     else if (error_value == 2)
-        numericReply(432, user, &(command[1]));
+        numericReply(432, user, &(cmd[1]));
     else if (error_value == 3)
-        numericReply(433, user, &(command[1]));
+        numericReply(433, user, &(cmd[1]));
     if (error_value != 0)
         return;
 
-    user.setNickname(command[1]);
+    user.setNickname(cmd[1]);
 
     if (user.getLogin())
         numericReply(001, user);
 }
 
-void Command::sendMessage(User &user, std::string msg){
+void Command::sendMessage(User &user, string msg){
     msg += "\r\n";
-    std::cout << "message send: " + msg;
+    cout << "message send: " + msg;
     if (send(user.getSocket(), msg.data(), msg.size(), 0) == -1)
-        std::cerr << "send error" << std::endl;
+        cout << "send error" << endl;
 }
 
-void Command::sendMessage(User &user, std::string channel_name, std::string msg){
+void Command::sendMessage(User &user, string channel_name, string msg){
     
     msg += "\r\n";
-    for (std::set<int>::iterator it = channelMap[channel_name].getUsersBegin(); it != channelMap[channel_name].getUsersEnd(); it++){
+    for (set<int>::iterator it = channelMap[channel_name].getUsersBegin(); it != channelMap[channel_name].getUsersEnd(); it++){
         
         int dest_fd = *it;
         if (dest_fd != server_fd && dest_fd != user.getSocket()){
-            std::cout << "msg send: " + msg;
+            cout << "message send: " + msg;
             if (send(dest_fd, msg.data(), msg.size(), 0) == -1)
-                std::cerr << "send error" << std::endl;
+                cout << "send error" << endl;
         }
     } 
 }
 
-void Command::sendNames(std::string name, User &user){
+void Command::sendNames(string name, User &user){
 
-    std::string buffer = ":127.0.0.1 353 = " + name + " :";
-    std::set<int>::iterator begin = channelMap.find(name)->second.getUsersBegin();
-    std::set<int>::iterator end = channelMap.find(name)->second.getUsersEnd();
+    string buffer = ":127.0.0.1 353 = " + name + " :";
+    set<int>::iterator begin = channelMap.find(name)->second.getUsersBegin();
+    set<int>::iterator end = channelMap.find(name)->second.getUsersEnd();
     
     while (begin != end)
-        buffer = buffer + " " + (((channelMap.find(name)->second.getOperator()) == &user) ? "@" : "") + userMap[*begin++].getNickname();
+        buffer = buffer + " " + (((channelMap.find(name)->second.getOwner()) == &user) ? "@" : "") + userMap[*begin++].getNickname();
     
     sendMessage(user, buffer);
     sendMessage(user, ":127.0.0.1 366 = " + name + " :End of /NAMES list");
 }
 
-void Command::join(std::string name, User &user){
+void Command::join(string name, User &user){
 
     if (name[0] != '#')
         name.insert(0, "#");
@@ -179,70 +185,70 @@ void Command::join(std::string name, User &user){
         channelMap[name].addUserSocket(user.getSocket());
 
     user.addChannel(channelMap[name]);
-    std::string msg = ":" + user.getNickname() + " JOIN :" + name;
+    string msg = ":" + user.getNickname() + " JOIN :" + name;
     sendMessage(user, name, msg);
     sendNames(name, user);
 }
 
-void Command::user(std::vector<std::string> &split, User &user){
+void Command::user(vector<string> &split, User &user){
     user.setUsername(split[1]);
     if (user.getLogin())
         numericReply(001, user);
 }
 
-void Command::privmsg(std::vector<std::string> &command, User &user, bool notice){
+void Command::privmsg(vector<string> &cmd, User &user, bool notice){
 
     bool user_found = false;
 
-    if (command.size() < 3){
-        numericReply(461, user, &(command[0]));
+    if (cmd.size() < 3){
+        numericReply(461, user, &(cmd[0]));
         return;
     }
 
-    if (command[1][0] == '#') { // CHANNEL PRIVMSG
+    if (cmd[1][0] == '#') { // CHANNEL PRIVMSG
 
-        if (user.findChannel(command[1])){
+        if (user.checkChannel(cmd[1])){
 
-            std::string msg = user.getSource();
-            for (std::vector<std::string>::iterator it = command.begin(); it != command.end(); it++)
+            string msg = user.getSource();
+            for (vector<string>::iterator it = cmd.begin(); it != cmd.end(); it++)
                 msg += (" " + *it);
-            sendMessage(user, command[1], msg);
+            sendMessage(user, cmd[1], msg);
 
         }else {
             
-            if (channelMap.find(command[1]) == channelMap.end())
+            if (channelMap.find(cmd[1]) == channelMap.end())
                 if (!notice)
-                    numericReply(403, user, &(command[1]));
+                    numericReply(403, user, &(cmd[1]));
             else
-                numericReply(404, user, &(command[1]));
+                numericReply(404, user, &(cmd[1]));
         }
 
     } else { // USER PRIVMSG
 
-        for (std::map<int, User>::iterator i = userMap.begin(); i != userMap.end(); i++) {
+        for (user_iterator i = userMap.begin(); i != userMap.end(); i++) {
             
-            if (command[1] == i->second.getNickname()) {
+            if (cmd[1] == i->second.getNickname()) {
                 
                 user_found = true;
-                std::string msg = user.getSource();
+                string msg = user.getSource();
                 
-                for (std::vector<std::string>::iterator it = command.begin(); it != command.end(); it++)
+                for (vector<string>::iterator it = cmd.begin(); it != cmd.end(); it++)
                     msg += (" " + *it);
                 sendMessage(i->second, msg);
             }
         }
         if (!user_found && !notice)
-            numericReply(401, user, &(command[1]));
+            numericReply(401, user, &(cmd[1]));
     }
 }
 
-void Command::ping(std::string str, User &user){
+void Command::ping(string str, User &user){
     sendMessage(user, ":irc PONG IRC " + str);
 }
 
-void Command::numericReply(int error, User &user, std::string *context) {
+void Command::numericReply(int error, User &user, string *context) {
 
-    std::string msg = ":irc " + toString(error) + " ";
+    string msg = ":irc " + toString(error) + " ";
     if (context != nullptr)
         msg += *context + " ";
 

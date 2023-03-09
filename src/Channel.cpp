@@ -14,7 +14,7 @@
 
 Channel::Channel(void) {}
 
-Channel::Channel(std::string name, User &user): name(name), m_operator(&user){
+Channel::Channel(string name, User &user): name(name), owner(&user){
     userSockets.insert(user.getSocket());
 }
 
@@ -23,30 +23,30 @@ bool Channel::operator<(const Channel &other) const{
 }
 
 Channel &Channel::operator=(const Channel &other){
-    name = other.name;
-    m_operator = other.m_operator;
-    userSockets = other.userSockets;
+    this->name = other.name;
+    this->owner = other.owner;
+    this->userSockets = other.userSockets;
     return (*this);
 }
 
-std::set<int>::iterator Channel::getUsersBegin(void){
-    return (userSockets.begin());
-}
-
-std::set<int>::iterator Channel::getUsersEnd(void){
-    return (userSockets.end());
-}
-
-std::string Channel::getName(void) const{
-    return (name);
-}
-
 void Channel::addUserSocket(int socket){
-    userSockets.insert(socket);
+    this->userSockets.insert(socket);
 }
 
-User *Channel::getOperator(void) const {
-    return (m_operator);
+User *Channel::getOwner(void) const{
+    return (this->owner);
+}
+
+string Channel::getName(void) const{
+    return (this->name);
+}
+
+set<int>::iterator Channel::getUsersBegin(void){
+    return (this->userSockets.begin());
+}
+
+set<int>::iterator Channel::getUsersEnd(void){
+    return (this->userSockets.end());
 }
 
 // Yeni

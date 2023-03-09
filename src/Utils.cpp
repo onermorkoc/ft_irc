@@ -8,12 +8,12 @@ int isnumber(char *s){
     return (0);
 }
 
-bool isCrlf(std::string str){
-    std::string::size_type size = str.size();
+bool isCrlf(string str){
+    size_t size = str.size();
     return (size >= 2 && str[size - 2] == '\r' && str[size - 1] == '\n');
 }
 
-int receiveMsg(int socket, std::string &buff){
+int receiveMsg(int socket, string &buff){
     
     buff.clear();
     char lineRead[4096];
@@ -29,12 +29,12 @@ int receiveMsg(int socket, std::string &buff){
     return (rd);
 }
 
-std::vector<std::string> splitMsg(std::string content) {
+vector<string> splitMsg(string content) {
 
     char *words = new char[content.length() + 1];
-	std::strcpy(words, content.c_str());
+	strcpy(words, content.c_str());
 	char *line = strtok(words, " ");
-	std::vector<std::string> clientMsg;
+	vector<string> clientMsg;
 	
 	while(line != NULL){
 		clientMsg.push_back(line);
@@ -48,9 +48,9 @@ std::vector<std::string> splitMsg(std::string content) {
 	return (clientMsg);
 }
 
-std::vector<std::string> splitCommands(std::string content){
+vector<string> splitCommands(string content){
 
-    std::vector<std::string> split;
+    vector<string> split;
     int end = content.find("\r\n");
     
     while (end != -1){
@@ -66,40 +66,39 @@ int error(int key_code){
     switch(key_code){
 
         case 1:
-            std :: cout << "Error: ./ircserv <port> <password>" << std :: endl;
+            cout << "Error: ./ircserv <port> <password>" << endl;
             break;
         case 2:
-            std :: cout << "Error: Invalid port number !" << std :: endl;
+            cout << "Error: Invalid port number !" << endl;
             break;
         case 3:
-            std :: cout << "Error: socket() failed !" << std :: endl;
+            cout << "Error: socket() failed !" << endl;
             break;
         case 4:
-            std :: cout << "Error: bind() failed !" << std :: endl;
+            cout << "Error: bind() failed !" << endl;
             break;
         case 5:
-            std :: cout << "Error: listen() failed !" << std :: endl;
+            cout << "Error: listen() failed !" << endl;
             break;
         case 6:
-            std :: cout << "Error: accept() failed !" << std :: endl;
+            cout << "Error: accept() failed !" << endl;
             break;
         case 7:
-            std :: cout << "Error: poll() failed !" << std :: endl;
+            cout << "Error: poll() failed !" << endl;
             break;
         case 8:
-            std :: cout << "Error: getaddrinfo() failed !" << std :: endl;
+            cout << "Error: getaddrinfo() failed !" << endl;
             break;
         case 9:
-            std :: cout << "Error: recv() failed !" << std :: endl;
+            cout << "Error: recv() failed !" << endl;
             break;
         default:
             break;
     }
-
     return (1);
 }
 
-std::string toString(int n){
+string toString(int n){
     
     if (n == 1)
         return ("001");
@@ -111,15 +110,15 @@ bool isalnumunderscore(char c){
 	return (!(isalnum(c) || c == '_'));
 }
 
-int checkNickname(std::string &nickname, std::map<int, User> &userMap){
+int checkNickname(string &nickname, map<int, User> &userMap){
 
     if (nickname.empty())
         return (1);
     else if (nickname.size() > 20 || !isalpha(nickname[0]) || std::find_if(nickname.begin(), nickname.end(), isalnumunderscore) != nickname.end())
         return (2);
     else{
-        for (std::map<int, User>::iterator it = userMap.begin(); it != userMap.end(); it++)
-            if (it->second.hasNickname() && it->second.getNickname() == nickname)
+        for (map<int, User>::iterator it = userMap.begin(); it != userMap.end(); it++)
+            if (it->second.getNicknameSet() && it->second.getNickname() == nickname)
                 return (3);
     }
     return (0);

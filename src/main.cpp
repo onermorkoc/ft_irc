@@ -33,7 +33,9 @@ int main(int argc, char **argv){
 
     if (server.create())
         return (1);
-    std :: cout << "=> Server created... Port: " << argv[1] << " Password: " << argv[2] << std :: endl;
-
+        
+    cout << "=> Server created... Port: " << argv[1] << " Password: " << argv[2] << endl;
     server.run();
+
+    return (0);
 }
