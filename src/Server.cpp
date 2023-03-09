@@ -13,46 +13,49 @@
 #include "../inc/Server.hpp"
 
 // Constructor
-Server::Server(std::string port, std::string pass): fd_count(0), fd_max(5), port(port), command(pass){
-    pfds = static_cast<struct pollfd *>(malloc(sizeof(*pfds) * fd_max));
+Server::Server(std::string port, std::string pass): fd_count(0), port(port), command(pass) {}
+
+// Yeni
+Server::~Server(void){
+    free(this->pfds);
 }
 
 // Serveri oluştur
 int Server::create(void){
     
-    struct addrinfo hints;
-    struct addrinfo *ai;
-    struct addrinfo *p;
+    struct addrinfo     hints;
+    struct addrinfo     *ai;
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET; // ipv4
     hints.ai_socktype = SOCK_STREAM; // TCP
     hints.ai_flags = AI_PASSIVE;
     
-    if ((getaddrinfo(NULL, port.data(), &hints, &ai)) != 0)
+    if ((getaddrinfo(NULL, port.c_str(), &hints, &ai)) != 0)
         return (error(8));
 
-    for (p = ai; p != NULL; p = p->ai_next){
-
-        server_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (server_fd < 0)
-            continue;
-
-        if (bind(server_fd, p->ai_addr, p->ai_addrlen) < 0){
-            close(server_fd);
-            continue;
-        }
-        break;
-    }
-    freeaddrinfo(ai);
-
-    if (p == NULL)
+    server_fd = socket(ai->ai_family, ai->ai_socktype, ai->ai_protocol);
+    if (server_fd < 0){
+        freeaddrinfo(ai);
         return (error(3));
+    }
 
-    if (listen(server_fd, SOMAXCONN) == -1)
+    if (bind(server_fd, ai->ai_addr, ai->ai_addrlen) < 0){
+        close(server_fd);
+        freeaddrinfo(ai);
+        return (error(4));
+    }
+
+    if (listen(server_fd, SOMAXCONN) == -1){
+        close(server_fd);
+        freeaddrinfo(ai);
         return (error(5));
+    }
 
+    freeaddrinfo(ai);
     command.setServerFd(server_fd);
+    this->fd_max = server_fd;
+    this->pfds = static_cast<struct pollfd *>(malloc(sizeof(*pfds) * fd_max));
     pfds[0].fd = server_fd;
     pfds[0].events = POLLIN;
     fd_count++;
@@ -127,9 +130,9 @@ void Server::delFromPfds(int index){
 void Server::newMessage(int index){
 
     std::string buff;
-    int data_byte = receiveMsg(pfds[index].fd, buff);
     int sender_fd = pfds[index].fd;
-
+    int data_byte = receiveMsg(sender_fd, buff);
+    
     if (data_byte <= 0){
 
         if (data_byte == 0)
@@ -146,7 +149,7 @@ void Server::newMessage(int index){
         std::vector<std::string> split_commands = splitCommands(buff);
 
         for (int i = 0; i < split_commands.size(); i++){
-            std::cout << "msg taken: " << split_commands[i]; // GELEN YAZILAR SERVERDE
+            std::cout << "message taken: " << split_commands[i];
             std::vector<std::string> split_msg = splitMsg(split_commands[i]);
             this->command.commandDirector(split_msg, sender_fd);
         }

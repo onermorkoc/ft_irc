@@ -48,3 +48,15 @@ void Channel::addUserSocket(int socket){
 User *Channel::getOperator(void) const {
     return (m_operator);
 }
+
+// Yeni
+bool Channel::checkUser(int socket){
+    if (this->userSockets.find(socket) == this->userSockets.end())
+        return (false);
+    return (true);
+}
+
+// Yeni
+void Channel::delUserSocket(int socket){
+    this->userSockets.erase(socket);
+}

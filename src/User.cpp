@@ -89,3 +89,8 @@ std::string User::getSource(void) const {
 bool User::hasNickname(void) const {
     return (nicknameSet);
 }
+
+// Yeni
+void User::delChannel(const Channel &channel){
+    this->channelSet.erase(channel);
+}

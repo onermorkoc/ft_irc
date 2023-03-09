@@ -36,6 +36,9 @@ class Server {
 
         Server(std::string port, std::string pass);
 
+        // Yeni
+        ~Server(void);
+
         int create(void);
         int run(void);
 };

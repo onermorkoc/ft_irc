@@ -37,6 +37,10 @@ class Channel{
         std::string                 getName(void) const;
         std::set<int>::iterator     getUsersBegin(void);
         std::set<int>::iterator     getUsersEnd(void);
+
+        //Yeni
+        bool checkUser(int socket);
+        void delUserSocket(int socket);
 };
 
 # endif

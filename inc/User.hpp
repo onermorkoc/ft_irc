@@ -52,6 +52,9 @@ class User{
         std::string getUsername(void) const;
         std::string getHostname(void) const;
         std::string getSource(void) const;
+        
+        // Yeni
+        void delChannel(const Channel &channel);
     
 };
 # endif

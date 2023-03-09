@@ -23,6 +23,10 @@ class Command{
         void sendNames(std::string name, User &user);
         void numericReply(int error, User &user, std::string *context = nullptr);
 
+        // Yeni
+        void kick(std::string channel_name, std::string nickname, User &user);
+        User &nickname_to_user(std :: string nickname);
+
     public:
     
         Command(std :: string password);
