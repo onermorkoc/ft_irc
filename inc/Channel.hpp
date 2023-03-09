@@ -41,6 +41,7 @@ class Channel{
         //Yeni
         bool checkUser(int socket);
         void delUserSocket(int socket);
+        bool isEmpty(void);
 };
 
 # endif

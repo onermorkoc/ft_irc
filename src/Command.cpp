@@ -74,6 +74,9 @@ void Command::kick(std::string channel_name, std::string nickname, User &user){
                 // kişiyi çıkart
                 channel.delUserSocket(user.getSocket());
                 user.delChannel(channel);
+
+                if (channel.isEmpty()) // Kanalda user kalmadıysa
+                    this->channelMap.erase(channel_name); // Boş Kanalı sil
             }
         }
     }

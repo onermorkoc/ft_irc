@@ -60,3 +60,8 @@ bool Channel::checkUser(int socket){
 void Channel::delUserSocket(int socket){
     this->userSockets.erase(socket);
 }
+
+// Yeni
+bool Channel::isEmpty(void){
+    return (this->userSockets.empty());
+}
