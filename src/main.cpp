@@ -20,6 +20,12 @@
 
 # include "../inc/Server.hpp"
 
+void handler(int num){
+    if (num == SIGINT){
+        // Eksik yapılacak
+    }
+}
+
 int main(int argc, char **argv){
     
     // Argüman Kontrolleri.

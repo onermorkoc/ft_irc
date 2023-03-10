@@ -85,7 +85,15 @@ void Command::kick(vector<string> &cmd, User &user){
 }
 
 void Command::disconnectUser(int user_fd){
-    // Eksik yapılacak
+
+    User user = this->userMap.find(user_fd)->second;
+    set<Channel> userChannelSet = user.getChannelSet();
+    set<Channel>::iterator first = userChannelSet.begin();
+
+    while(first != userChannelSet.end()){
+        string channel_name = first++->getName();
+        this->channelMap.find(channel_name)->second.delUserSocket(user_fd);
+    }
     cout << "=> Socket " << user_fd << " hung up." << endl;
 }
 

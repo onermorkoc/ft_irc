@@ -55,5 +55,6 @@ class User{
         
         // Yeni
         void delChannel(const Channel &channel);
+        set<Channel> &getChannelSet(void);
 };
 # endif

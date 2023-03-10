@@ -94,3 +94,8 @@ string User::getSource(void) const {
 void User::delChannel(const Channel &channel){
     this->channelSet.erase(channel);
 }
+
+// Yeni
+set<Channel> &User::getChannelSet(void){
+    return (this->channelSet);
+}

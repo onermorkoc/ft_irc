@@ -63,16 +63,8 @@ int Server::create(void){
     return (0);
 }
 
-void handler(int num){
-    if (num == SIGINT){
-        // Eksik yapılacak
-    }
-}
-
 // Serveri çalıştır (loop).
 int Server::run(void){
-    
-    signal(SIGINT, handler);
 
     while (true){
         
