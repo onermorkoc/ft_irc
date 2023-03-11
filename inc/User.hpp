@@ -3,55 +3,66 @@
 /*                                                        :::      ::::::::   */
 /*   User.hpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yaysu <yaysu@student.42.fr>                +#+  +:+       +#+        */
+/*   By: alyasar <alyasar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/04 16:18:08 by alyasar           #+#    #+#             */
-/*   Updated: 2023/03/05 21:08:44 by yaysu            ###   ########.tr       */
+/*   Updated: 2023/03/11 02:13:53 by alyasar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-# ifndef USER_HPP
+#ifndef USER_HPP
 # define USER_HPP
 
-# include "./ft_irc.hpp"
-# include "./Channel.hpp"
+# include <iostream>
+# include "Channel.hpp"
 
 class Channel;
 
-class User{
+class User
+{
+private:
+    int             m_socket;
+    std::string     m_nickname;
+    std::string     m_username;
+    std::string     m_realname;
+    std::string     m_hostname;
 
-    private:
-    
-        int                 socket;
-        bool                correctPassword;
-        bool                nicknameSet;
-        bool                usernameSet;
-        std::string         nickname;
-        std::string         username;
-        std::string         realname;
-        std::string         hostname;
-        std::set<Channel>   channelSet;
+    std::string     m_command;
 
-    public:
+    bool            m_correctPassword;
+    bool            m_nicknameSet;
+    bool            m_usernameSet;
 
-        User(void);
-        bool operator<(const User &other) const;
+    std::set<Channel>   m_channelSet;
 
-        int         getSocket(void) const;
-        bool        getPasswd(void) const;
-        bool        getLogin(void) const;
-        bool        findChannel(std::string str);
-        bool        hasNickname(void) const;
-        void        setSocket(int socket);
-        void        setPasswd(bool type);
-        void        setNickname(std::string nickname);
-        void        setUsername(std::string username);
-        void        addChannel(const Channel &channel);
-        void        setHostname(std::string hostname);
-        std::string getNickname(void) const;
-        std::string getUsername(void) const;
-        std::string getHostname(void) const;
-        std::string getSource(void) const;
-    
+public:
+    User();
+    bool operator<(const User &other) const;
+
+    void        setSocket(int socket);
+    int         getSocket(void) const;
+    void        setPasswd(bool type);
+    bool        getPasswd(void) const;
+    bool        getLogin(void) const;
+    void        setNickname(std::string nickname);
+    std::string getNickname(void) const;
+    void        setUsername(std::string username);
+    std::string getUsername(void) const;
+    void        setHostname(std::string hostname);
+    std::string getHostname(void) const;
+    void        setRealname(std::string realname);
+    std::string getRealname(void) const;
+    void        addChannel(const Channel &channel);
+    bool        findChannel(std::string str);
+    void        delChannel(const Channel &channel);
+    std::string getSource(void) const;
+    bool        hasNickname(void) const;
+    bool        hasUsername(void) const;
+    std::string getCommand(void) const;
+    void        addCommand(std::string command);
+    std::string drawCommand(void);
+    std::set<Channel>::iterator   getChannelsBegin(void) const;
+    std::set<Channel>::iterator   getChannelsEnd(void) const;
 };
-# endif
+
+#endif

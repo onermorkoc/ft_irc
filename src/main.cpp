@@ -6,34 +6,25 @@
 /*   By: alyasar <alyasar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/04 16:18:01 by alyasar           #+#    #+#             */
-/*   Updated: 2023/03/04 16:18:02 by alyasar          ###   ########.tr       */
+/*   Updated: 2023/03/10 20:52:13 by alyasar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-/* Serverin Çalışma mantığı:
-1) Soket oluşturulur (socket)
-2) Soketden dönen fd' ile ip ve  port ilişkilendirilir (bind)
-3) Sunucu dinlenmeye başlanır (listen)
-4) Sunucuya gelen istekler kabul edilir (accecpt). Loop burada olur.
-5) Clientten gelen veriler alınır ve gönderilir (recv/send)
-*/
+#include "../inc/ft_irc.hpp"
 
-# include "../inc/Server.hpp"
-
-int main(int argc, char **argv){
-    
-    // Argüman Kontrolleri.
-    if (argc != 3)
-        return (error(1));
-    else if (isnumber(argv[1]) || atoi(argv[1]) < 0 || atoi(argv[1]) > 65535)
-        return (error(2));
-
-    // Server oluştur ve çalıştır.
-    Server server(argv[1], argv[2]);
-
-    if (server.create())
+int main(int argc, char **argv)
+{
+    if (argc != 3){
+        std::cout << "Error: ./ircserv <port> <password>" << std::endl;
         return (1);
-    std :: cout << "=> Server created... Port: " << argv[1] << " Password: " << argv[2] << std :: endl;
+    }
+    else if (isNumber(argv[1]) || std::atoi(argv[1]) < 0 || std::atoi(argv[1]) > 65535)
+    {
+        std::cout << "Error: Invalid port number !" << std::endl;
+        return (1);
+    }
 
+    Server server(argv[1], argv[2]);
+    std::cout << "=> Server has been created\nPort: " << argv[1] << " Password: " << argv[2] << std::endl;
     server.run();
 }

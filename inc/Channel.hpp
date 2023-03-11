@@ -6,37 +6,42 @@
 /*   By: alyasar <alyasar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/04 16:18:25 by alyasar           #+#    #+#             */
-/*   Updated: 2023/03/05 22:02:13 by alyasar          ###   ########.tr       */
+/*   Updated: 2023/03/10 21:58:37 by alyasar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-# ifndef CHANNEL_HPP
+#ifndef CHANNEL_HPP
 # define CHANNEL_HPP
 
-# include "./User.hpp"
+# include <iostream>
+# include <set>
+# include "User.hpp"
 
 class User;
 
-class Channel{
+class Channel
+{
+private:
+    std::string     m_name;
+    std::set<int>   m_userSockets;
+    User            *m_operator;
 
-    private:
+public:
+    Channel();
+    Channel(std::string name, User &user);
+    bool operator<(const Channel &other) const;
+    Channel &operator=(const Channel &other);
 
-        User            *m_operator;
-        std::string     name;
-        std::set<int>   userSockets;
-
-    public:
-
-        Channel(void);
-        Channel(std::string name, User &user);
-        
-        void                        addUserSocket(int socket);
-        bool                        operator<(const Channel &other) const;
-        User                       *getOperator(void) const;
-        Channel                     &operator=(const Channel &other);
-        std::string                 getName(void) const;
-        std::set<int>::iterator     getUsersBegin(void);
-        std::set<int>::iterator     getUsersEnd(void);
+    std::set<int>               getUsers(void) const;
+    std::set<int>::iterator     getUsersBegin(void) const;
+    std::set<int>::iterator     getUsersEnd(void) const;
+    std::string                 getName(void) const;
+    User                        *getOperator(void) const;
+    void                        setOperator(User *user);
+    void                        addUserSocket(int socket);
+    bool                        checkUser(int socket);
+    void                        delUserSocket(int socket);
+    bool                        isEmpty(void);
 };
 
-# endif
+#endif

@@ -6,36 +6,46 @@
 #    By: alyasar <alyasar@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2023/02/25 20:55:10 by altugyasar        #+#    #+#              #
-#    Updated: 2023/03/05 19:25:45 by alyasar          ###   ########.tr        #
+#    Updated: 2023/03/11 03:14:33 by alyasar          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-RM		=	rm -rf
-CC		=	c++
-STD		=	-std=c++98
-NAME	=	ircserv
-FLAGS	=	-Wall -Werror -Wextra
+NAME = ircserv
+CC = g++
+CFLAGS = -Wall -Wextra -Werror -std=c++98
 
-SOURCES	=	./src/main.cpp \
-			./src/User.cpp \
-			./src/Server.cpp \
-			./src/Channel.cpp \
-			./src/Utils.cpp \
-			./src/Command.cpp
+INC =	inc/ft_irc.hpp \
+		inc/Server.hpp \
+		inc/User.hpp \
+		inc/Channel.hpp \
 
-OBJECTS	= $(SOURCES:.cpp=.o)
+SRC =	src/main.cpp \
+		src/Server.cpp \
+		src/User.cpp \
+		src/Channel.cpp \
+		src/numericReply.cpp \
+		src/utils.cpp \
+		src/cmds/pass.cpp \
+		src/cmds/user.cpp \
+		src/cmds/nick.cpp \
+		src/cmds/join.cpp \
+		src/cmds/privmsg.cpp \
+		src/cmds/ping.cpp \
+		src/cmds/kick.cpp \
+		src/cmds/part.cpp \
+		src/cmds/quit.cpp \
 
-$(NAME): $(OBJECTS)
-	$(CC) $(OBJECTS) $(STD) -o $(NAME)
+OBJ =	$(SRC:.cpp=.o)
 
 all: $(NAME)
 
+$(NAME): $(OBJ)
+		$(CC) $(CFLAGS) -o $(NAME) $(OBJ)
+
 clean:
-	$(RM) $(OBJECTS)
+		rm -rf $(OBJ)
 
 fclean: clean
-	$(RM) $(NAME)
+		rm -rf $(NAME)
 
 re: fclean all
-
-.PHONY: all clean fclean re

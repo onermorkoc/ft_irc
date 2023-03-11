@@ -6,70 +6,104 @@
 /*   By: alyasar <alyasar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/04 16:17:51 by alyasar           #+#    #+#             */
-/*   Updated: 2023/03/05 22:07:25 by alyasar          ###   ########.tr       */
+/*   Updated: 2023/03/11 03:10:49 by alyasar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/Server.hpp"
 
-// Constructor
-Server::Server(std::string port, std::string pass): fd_count(0), fd_max(5), port(port), command(pass){
-    pfds = static_cast<struct pollfd *>(malloc(sizeof(*pfds) * fd_max));
+Server::Server(std::string port, std::string pass)
+    :   m_fd_count(0), m_fd_max(5), m_password(pass)
+{
+    m_pfds = static_cast<struct pollfd *>(malloc(sizeof(*m_pfds) * m_fd_max)); // Burada new dene
+    if (!create(port))
+        exit(1);
 }
 
-// Serveri oluştur
-int Server::create(void){
-    
+Server::~Server(void)
+{
+    if (m_pfds != nullptr)
+        free(m_pfds);
+}
+
+int Server::create(std::string port)
+{
+    int status;
     struct addrinfo hints;
     struct addrinfo *ai;
     struct addrinfo *p;
+    int yes = 1;
 
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET; // ipv4
-    hints.ai_socktype = SOCK_STREAM; // TCP
+    std::memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
     
-    if ((getaddrinfo(NULL, port.data(), &hints, &ai)) != 0)
-        return (error(8));
+    if ((status = getaddrinfo(NULL, port.c_str(), &hints, &ai)) != 0)
+    {
+        std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
+        return (0);
+    }
 
-    for (p = ai; p != NULL; p = p->ai_next){
+    for (p = ai; p != NULL; p = p->ai_next)
+    {
+        m_listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 
-        server_fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (server_fd < 0)
+        if (m_listener < 0)
             continue;
 
-        if (bind(server_fd, p->ai_addr, p->ai_addrlen) < 0){
-            close(server_fd);
+        if (setsockopt(m_listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
+        {
+            std::cerr << "setsockopt error" << std::endl;
+            freeaddrinfo(ai);
+            exit(1);
+        }
+
+        if (bind(m_listener, p->ai_addr, p->ai_addrlen) < 0)
+        {
+            close(m_listener);
             continue;
         }
+        
         break;
     }
+
     freeaddrinfo(ai);
 
     if (p == NULL)
-        return (error(3));
+    {
+        std::cerr << "socket error" << std::endl;
+        return (0);
+    }
 
-    if (listen(server_fd, SOMAXCONN) == -1)
-        return (error(5));
+    if (listen(m_listener, SOMAXCONN) == -1)
+    {
+        std::cerr << "listen error" << std::endl;
+        return (0);
+    }
 
-    command.setServerFd(server_fd);
-    pfds[0].fd = server_fd;
-    pfds[0].events = POLLIN;
-    fd_count++;
-    return (0);
+    m_pfds[0].fd = m_listener;
+    m_pfds[0].events = POLLIN;
+    m_fd_count++;
+
+    return (1);
 }
 
-// Serveri çalıştır (loop).
-int Server::run(void){
-    
-    while (true){
-        
-        if (poll(pfds, fd_count, -1) == -1)
-            return (error(7));
+int    Server::run(void)
+{
+    while (true)
+    {
+        if (poll(m_pfds, m_fd_count, -1) == -1)
+        {
+            std::cerr << "poll error" << std::endl;
+            return (0);
+        }
 
-        for (int i = 0; i < fd_count; i++){
-            if (pfds[i].revents & POLLIN){
-                if (pfds[i].fd == server_fd)
+        for (int i = 0; i < m_fd_count; i++)
+        {
+            if (m_pfds[i].revents & POLLIN)
+            {
+                if (m_pfds[i].fd == m_listener)
                     newConnection();
                 else
                     newMessage(i);
@@ -78,77 +112,135 @@ int Server::run(void){
     }
 }
 
-// Yeni kullanıcıları kabul et ve gerekli ayarlamaları yap.
-void Server::newConnection(void){
-
+void    Server::newConnection(void)
+{
     char clientIP[INET_ADDRSTRLEN];
     struct sockaddr_storage clientaddr;
     socklen_t addrlen = sizeof(clientaddr);
 
     char hostname[NI_MAXHOST];
     char service[NI_MAXSERV];
-    memset(hostname, 0, NI_MAXHOST);
-    memset(service, 0, NI_MAXSERV);
+    std::memset(hostname, 0, NI_MAXHOST);
+    std::memset(service, 0, NI_MAXSERV);
 
-    int newfd = accept(server_fd, (struct sockaddr *)(&clientaddr), &addrlen);
+    int newfd = accept(m_listener, (struct sockaddr *)(&clientaddr), &addrlen);
     
     if (newfd == -1)
-        error(6);
-    else{
+        std::cerr << "accept error" << std::endl;
+    else
+    {
         addToPfds(newfd);
         getnameinfo((sockaddr *)(&clientaddr), addrlen, hostname, NI_MAXHOST, service, NI_MAXSERV, 0);
-        this->command.addUser(newfd, hostname);
-        std::cout << "=> New connection from " << inet_ntop(clientaddr.ss_family, &((struct sockaddr_in *)(&clientaddr))->sin_addr, \
-            clientIP, INET_ADDRSTRLEN) << " on socket " << newfd << std::endl;
+        m_userMap[newfd];
+        m_userMap[newfd].setSocket(newfd);
+        m_userMap[newfd].setHostname(hostname);
+        std::cout << "New connection from " << inet_ntop(clientaddr.ss_family, &((struct sockaddr_in *)(&clientaddr))->sin_addr, clientIP, INET_ADDRSTRLEN) << " on socket " << newfd << std::endl;
     }
 }
 
-// Çoklu fd kontrolü(I/O) için pdfs arrayını düzenle.
-void Server::addToPfds(int newfd){
-
-    if (fd_count >= fd_max){
-        fd_max *= 2;
-        pfds = (struct pollfd *)realloc(pfds, sizeof(*pfds) * fd_max);
-    }
-
-    pfds[fd_count].fd = newfd;
-    pfds[fd_count].events = POLLIN;
-    fd_count++;
-}
-
-// Bağlantıyı koparan clients fd lerini tekrar kullanabilmesi için pfds den çıkart
-void Server::delFromPfds(int index){
-    close(pfds[index].fd);
-    pfds[index] = pfds[fd_count - 1];
-    fd_count--;
-}
-
-// Veriyi al işle veya bağlantıyı koparanları tespit et
-void Server::newMessage(int index){
-
+void    Server::newMessage(int index)
+{
     std::string buff;
-    int data_byte = receiveMsg(pfds[index].fd, buff);
-    int sender_fd = pfds[index].fd;
+    std::string command;
+    int nbytes = receiveMsg(m_pfds[index].fd, buff);
+    std::cout << "msg taken: " + buff; // GELEN YAZILAR SERVERDE
+    int sender_fd = m_pfds[index].fd;
+    User &sender_user = m_userMap[sender_fd];
 
-    if (data_byte <= 0){
-
-        if (data_byte == 0)
-            std::cout << "=> Socket " << sender_fd << " hung up." << std::endl;
+    if (nbytes <= 0)
+    {
+        if (nbytes == 0)
+            quit("Client Quit", sender_user);
         else
-            error(9);
+            quit("Client Crashed", sender_user);
+        
+        close(m_pfds[index].fd);
         delFromPfds(index);
-
-    }else{
-
-        if (buff[buff.length() - 2] != '\r')
-            buff.insert(buff.length() - 1, "\r");
-
-        std::vector<std::string> split_commands = splitCommands(buff);
-
-        for (int i = 0; i < split_commands.size(); i++){
-            std::cout << "msg taken: " << split_commands[i]; // GELEN YAZILAR SERVERDE
-            std::vector<std::string> split_msg = splitMsg(split_commands[i]);
-            this->command.commandDirector(split_msg, sender_fd);
+    }
+    else
+    {
+        sender_user.addCommand(buff);
+        command = sender_user.drawCommand();
+        while (!command.empty())
+        {
+            std::vector<std::string> split_msg = splitMsg(command);
+            commandDirector(split_msg, sender_user);
+            command = sender_user.drawCommand();
         }
     }
+}
+
+void    Server::addToPfds(int newfd)
+{
+    if (m_fd_count >= m_fd_max)
+    {
+        m_fd_max *= 2;
+        m_pfds = (struct pollfd *)realloc(m_pfds, sizeof(*m_pfds) * m_fd_max);
+    }
+
+    m_pfds[m_fd_count].fd = newfd;
+    m_pfds[m_fd_count].events = POLLIN;
+
+    m_fd_count++;
+}
+
+void    Server::delFromPfds(int index)
+{
+    m_pfds[index] = m_pfds[m_fd_count - 1];
+    m_fd_count--;
+}
+
+void   Server::commandDirector(std::vector<std::string> &cmd, User &user)
+{
+    if (cmd[0] == "PASS")
+        pass(cmd, user);
+    if (user.getPasswd())
+    {
+        if (cmd[0] == "NICK")
+            nick(cmd, user);
+        else if (cmd[0] == "USER")
+            this->user(cmd, user);
+    }
+    if (user.getLogin())
+    {
+        if (cmd[0] == "JOIN")
+            join(cmd, user);
+        else if (cmd[0] == "PRIVMSG")
+            privmsg(cmd, user, false);
+        else if (cmd[0] == "NOTICE")
+            privmsg(cmd, user, true);
+        else if (cmd[0] == "PING")
+            ping(cmd, user);
+        else if (cmd[0] == "KICK")
+            kick(cmd, user);
+        else if (cmd[0] == "PART")
+            part(cmd, user);
+        else if (cmd[0] == "QUIT" && cmd.size() == 1)
+            quit("", user);
+        else if (cmd[0] == "QUIT" && cmd.size() == 2)
+            quit(cmd[1], user);
+    }
+}
+
+void    Server::sendMessage(User &user, std::string msg)
+{
+    msg += "\r\n";
+    std::cout << "msg send: " + msg;
+    if (send(user.getSocket(), msg.data(), msg.size(), 0) == -1)
+        std::cerr << "send error" << std::endl;
+}
+
+void    Server::sendMessage(User &user, std::string channel_name, std::string msg, bool send_to_sender)
+{
+    msg += "\r\n";
+    for (std::set<int>::iterator it = m_channelMap[channel_name].getUsersBegin(); it != m_channelMap[channel_name].getUsersEnd(); it++)
+    {
+        int dest_fd = *it;
+        if (dest_fd != m_listener && (send_to_sender || dest_fd != user.getSocket()))
+        {
+            std::cout << "msg send: " + msg;
+            if (send(dest_fd, msg.data(), msg.size(), 0) == -1)
+                std::cerr << "send error" << std::endl;
+        }
+    } 
 }

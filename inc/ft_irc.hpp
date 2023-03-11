@@ -1,41 +1,34 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.hpp                                           :+:      :+:    :+:   */
+/*   ft_irc.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: alyasar <alyasar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/04 16:18:19 by alyasar           #+#    #+#             */
-/*   Updated: 2023/03/04 17:11:29 by alyasar          ###   ########.tr       */
+/*   Updated: 2023/03/10 20:47:51 by alyasar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-# ifndef FT_IRC_HPP
+#ifndef FT_IRC_HPP
 # define FT_IRC_HPP
 
-# include <iostream>
-# include <sys/socket.h>
-# include <netinet/in.h>
-# include <arpa/inet.h>
-# include <netdb.h>
-# include <unistd.h>
-# include <poll.h>
-# include <map>
-# include <vector>
-# include <set>
-# include <cstring>
-# include <algorithm>
-# include "./User.hpp"
+#include <iostream>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <unistd.h>
+#include <poll.h>
+#include <map>
+#include <vector>
+#include "Server.hpp"
+#include <cstring>
 
-class User;
-
-// Utils
-int error(int key_code);
-int isnumber(char *s);
+bool isNumber(char *s);
+std::vector<std::string>    splitMsg(std::string content);
+bool    isCrlf(std::string str);
 int receiveMsg(int socket, std::string &buff);
-int checkNickname(std::string &nickname, std::map<int, User> &userMap);
-std::vector<std::string> splitMsg(std::string content);
-std::vector<std::string> splitCommands(std::string content);
-std::string toString(int n);
+std::string     toString(int n);
 
-# endif
+#endif

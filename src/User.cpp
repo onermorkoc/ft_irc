@@ -3,80 +3,109 @@
 /*                                                        :::      ::::::::   */
 /*   User.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: yaysu <yaysu@student.42.fr>                +#+  +:+       +#+        */
+/*   By: alyasar <alyasar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/04 16:49:10 by alyasar           #+#    #+#             */
-/*   Updated: 2023/03/05 21:39:58 by yaysu            ###   ########.tr       */
+/*   Updated: 2023/03/10 21:38:40 by alyasar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/User.hpp"
 
-User::User(void): correctPassword(false), nicknameSet(false), usernameSet(false) {}
-
-void User::setSocket(int socket){
-    this->socket = socket;
+User::User()
+    :   m_correctPassword(false), m_nicknameSet(false), m_usernameSet(false)
+{
 }
 
-int User::getSocket(void) const {
-    return (socket);
+void    User::setSocket(int socket)
+{
+    m_socket = socket;
 }
 
-bool User::getLogin(void) const {
-    return (correctPassword && nicknameSet && usernameSet);
+int User::getSocket(void) const
+{
+    return (m_socket);
 }
 
-void User::setPasswd(bool type){
-    correctPassword = type;
+bool    User::getLogin(void) const
+{
+    return (m_correctPassword && m_nicknameSet && m_usernameSet);
 }
 
-bool User::getPasswd(void) const {
-    return (correctPassword);
+void    User::setPasswd(bool type)
+{
+    m_correctPassword = type;
 }
 
-void User::setNickname(std::string nickname){
-    this->nickname = nickname;
-    nicknameSet = true;
+bool    User::getPasswd(void) const
+{
+    return (m_correctPassword);
 }
 
-std::string User::getNickname(void) const {
-    return (nickname);
+void    User::setNickname(std::string nickname)
+{
+    m_nickname = nickname;
+    m_nicknameSet = true;
 }
 
-void User::setUsername(std::string username){
-    this->username = username;
-    usernameSet = true;
+std::string    User::getNickname(void) const
+{
+    return (m_nickname);
 }
 
-std::string User::getUsername(void) const {
-    return (username);
+void    User::setUsername(std::string username)
+{
+    m_username = username;
+    m_usernameSet = true;
 }
 
-void User::setHostname(std::string hostname){
-    this->hostname = hostname;
+std::string    User::getUsername(void) const
+{
+    return (m_username);
 }
 
-std::string User::getHostname(void) const {
-    return (hostname);
+void    User::setHostname(std::string hostname)
+{
+    m_hostname = hostname;
 }
 
-bool User::operator<(const User &other) const {
-    return (socket < other.socket);
+std::string    User::getHostname(void) const
+{
+    return (m_hostname);
 }
 
-void User::addChannel(const Channel &channel){
-    channelSet.insert(channel);
+void        User::setRealname(std::string realname)
+{
+    m_realname = realname;
 }
 
-bool User::findChannel(std::string str){   
-    for (std::set<Channel>::iterator it = channelSet.begin(); it != channelSet.end(); it++)
+std::string User::getRealname(void) const
+{
+    return (m_realname);
+}
+
+bool    User::operator<(const User &other) const
+{
+    return (m_socket < other.m_socket);
+}
+
+void    User::addChannel(const Channel &channel)
+{
+    m_channelSet.insert(channel);
+}
+
+bool    User::findChannel(std::string str)
+{
+    for (std::set<Channel>::iterator it = m_channelSet.begin(); it != m_channelSet.end(); it++)
+    {
         if ((*it).getName() == str)
-            return 1;
-    return 0;
+            return true;
+    }
+    return false;
 }
 
-std::string User::getSource(void) const {
-    
+std::string User::getSource(void) const
+{
     std::string source = ":";
     source += getNickname();
     source += "!";
@@ -86,6 +115,49 @@ std::string User::getSource(void) const {
     return (source);
 }
 
-bool User::hasNickname(void) const {
-    return (nicknameSet);
+bool    User::hasNickname(void) const
+{
+    return (m_nicknameSet);
+}
+
+bool    User::hasUsername(void) const
+{
+    return (m_usernameSet);
+}
+
+std::string User::getCommand(void) const
+{
+    return (m_command);
+}
+
+void    User::addCommand(std::string command)
+{
+    m_command += command;
+}
+
+std::string User::drawCommand(void)
+{
+    std::string newCommand;
+    size_t found = m_command.find("\r\n");
+    if (found != std::string::npos)
+    {
+        newCommand.assign(m_command, 0, found);
+        m_command.erase(0, found + 2);
+    }
+    return (newCommand);
+}
+
+void    User::delChannel(const Channel &channel)
+{
+    m_channelSet.erase(channel);
+}
+
+std::set<Channel>::iterator   User::getChannelsBegin(void) const
+{
+    return (m_channelSet.begin());
+}
+
+std::set<Channel>::iterator   User::getChannelsEnd(void) const
+{
+    return (m_channelSet.end());
 }
