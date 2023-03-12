@@ -6,7 +6,7 @@
 /*   By: alyasar <alyasar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/11 02:59:28 by alyasar           #+#    #+#             */
-/*   Updated: 2023/03/11 03:27:13 by alyasar          ###   ########.fr       */
+/*   Updated: 2023/03/12 23:26:27 by alyasar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,12 +22,14 @@ void    Server::quit(std::string reason, User &user)
         if (m_channelMap.find(channel_name)->second.getOperator() == &user)
             m_channelMap.find(channel_name)->second.setOperator(nullptr);
         m_channelMap.find(channel_name)->second.delUserSocket(user.getSocket());
+        if (m_channelMap.find(channel_name)->second.isEmpty())
+            m_channelMap.erase(m_channelMap.find(channel_name)->second.getName());
     }
 
     if (user.getLogin())
     {
         for (std::map<int, User>::iterator it = m_userMap.begin(); it != m_userMap.end(); it++)
-            sendMessage(it->second, user.getSource() + " QUIT :" + reason);
+            sendMessage(it->second, user.getSource() + " QUIT :" + crop(reason));
     }
 
     std::cout << "=> Socket " << user.getSocket() << " hung up." << std::endl;

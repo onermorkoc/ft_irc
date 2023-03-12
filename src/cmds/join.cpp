@@ -6,7 +6,7 @@
 /*   By: alyasar <alyasar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/05 18:32:29 by alyasar           #+#    #+#             */
-/*   Updated: 2023/03/10 22:04:54 by alyasar          ###   ########.fr       */
+/*   Updated: 2023/03/12 23:19:08 by alyasar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,8 @@ void    Server::sendNames(std::string name, User &user)
 
 void    Server::join(std::vector<std::string> &command, User &user)
 {
+    bool already_in_channel = false;
+
     if (command.size() < 2)
 	{
 		numericReply(461, user, &command[0]);
@@ -45,16 +47,23 @@ void    Server::join(std::vector<std::string> &command, User &user)
         m_channelMap[name] = currentChannel;
     }
     else
-        m_channelMap[name].addUserSocket(user.getSocket());
-    user.addChannel(m_channelMap[name]);
-    //std::string msg = ":" + user.getNickname() + " JOIN :" + name;
-    //sendMessage(user, name, msg, false);
-    std::string msg = user.getSource();
-    for (std::vector<std::string>::iterator it = command.begin(); it != command.end(); it++)
     {
-        msg += " ";
-        msg += *it;
+        if (m_channelMap[name].checkUser(user.getSocket()))
+            already_in_channel = true;
+        m_channelMap[name].addUserSocket(user.getSocket());
     }
-    sendMessage(user, name, msg, true);
-    sendNames(name, user);
+
+    user.addChannel(m_channelMap[name]);
+    
+    if (!already_in_channel)
+    {
+        std::string msg = user.getSource();
+        for (std::vector<std::string>::iterator it = command.begin(); it != command.end(); it++)
+        {
+            msg += " ";
+            msg += *it;
+        }
+        sendMessage(user, name, msg, true);
+        sendNames(name, user);
+    }
 }

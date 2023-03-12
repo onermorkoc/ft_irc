@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   utils.cpp                                          :+:      :+:    :+:   */
+/*   Utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: alyasar <alyasar@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/03/10 20:41:35 by alyasar           #+#    #+#             */
-/*   Updated: 2023/03/10 20:46:45 by alyasar          ###   ########.fr       */
+/*   Updated: 2023/03/12 23:26:04 by alyasar          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,4 +68,14 @@ std::string     toString(int n)
         return ("001");
     else
         return (std::to_string(n));
+}
+
+std::string     crop(std::string str)
+{
+    std::string cropped = str;
+
+    if (cropped[0] == ':')
+        cropped.erase(0, 1);
+
+    return (cropped);
 }
