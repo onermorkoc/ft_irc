@@ -14,11 +14,6 @@ NAME = ircserv
 CC = g++
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 
-INC =	inc/ft_irc.hpp \
-		inc/Server.hpp \
-		inc/User.hpp \
-		inc/Channel.hpp \
-
 SRC =	src/main.cpp \
 		src/Server.cpp \
 		src/User.cpp \
